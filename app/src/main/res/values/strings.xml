@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">PokeApp</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="show_less">Show less</string>
-    <string name="show_more">Show more</string>
 </resources>
