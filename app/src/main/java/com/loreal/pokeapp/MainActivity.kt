@@ -9,11 +9,12 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -28,15 +29,20 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.loreal.pokeapp.ui.components.ListItem
@@ -84,7 +90,7 @@ data class ExerciseModel(
 fun MyApp() {
     Scaffold(
         topBar = ::AppBar,
-        content = ::Content,
+        content = ::HomeScreen,
         bottomBar = ::BottomBar,
     )
 }
@@ -92,80 +98,105 @@ fun MyApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar() {
-    TopAppBar(title = { Text("Top app bar") })
-}
-
-@Composable
-fun Content(innerPadding: PaddingValues) {
-    Column(
-        modifier = Modifier.padding(innerPadding)
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        AppSearchBar()
-        AlignYourBodySection(alignYourBodyData)
-        FavoriteCollectionsSection(favoriteCollectionsData)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppSearchBar() {
-    val textFieldState: TextFieldState = TextFieldState()
-    SearchBar(
-        modifier = Modifier.fillMaxWidth(1f).padding(horizontal = 16.dp),
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = textFieldState.text.toString(),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search"
-                    )
-                },
-                onQueryChange = { textFieldState.edit { replace(0, length, it) } },
-                onSearch = { },
-                expanded = false,
-                onExpandedChange = { },
-                placeholder = { Text("Search") }
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium
             )
         },
-        expanded = false,
-        onExpandedChange = { },
-        windowInsets = WindowInsets(0)
-    ) {}
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    )
 }
 
 @Composable
-fun AlignYourBodySection(data: List<ExerciseModel>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Align your body", modifier = Modifier.padding(horizontal = 16.dp))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+fun HomeScreen(innerPadding: PaddingValues) {
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(top = 16.dp, bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(data) { model ->
-                model.ToListItem(type = ListItem.Type.HORIZONTAL_ROW)
+            AppSearchBar(modifier = Modifier.padding(horizontal = 16.dp))
+            HomeSection(title = R.string.align_your_body) {
+                AlignYourBodyRow(alignYourBodyData)
+            }
+            HomeSection(title = R.string.favorite_collections) {
+                FavoriteCollectionsGrid(favoriteCollectionsData)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoriteCollectionsSection(data: List<ExerciseModel>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Favorite collections", modifier = Modifier.padding(horizontal = 16.dp))
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(2),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.height(168.dp)
-        ) {
-            items(data) { model ->
-                model.ToListItem(type = ListItem.Type.HORIZONTAL_GRID)
-            }
+fun AppSearchBar(modifier: Modifier = Modifier) {
+    val textFieldState = TextFieldState()
+
+    TextField(
+        leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null) },
+        value = "",
+        placeholder = { Text(stringResource(R.string.placeholder_search)) },
+        onValueChange = {},
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+    )
+}
+
+@Composable
+fun HomeSection(
+    @StringRes title: Int,
+    content: @Composable () -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .paddingFromBaseline(top = 40.dp, bottom = 16.dp)
+                .padding(horizontal = 16.dp)
+        )
+        content()
+    }
+}
+
+@Composable
+fun AlignYourBodyRow(data: List<ExerciseModel>) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(data) { model ->
+            model.ToListItem(type = ListItem.Type.HORIZONTAL_ROW)
+        }
+    }
+}
+
+@Composable
+fun FavoriteCollectionsGrid(data: List<ExerciseModel>) {
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.height(168.dp)
+    ) {
+        items(data) { model ->
+            model.ToListItem(type = ListItem.Type.HORIZONTAL_GRID)
         }
     }
 }
@@ -182,11 +213,14 @@ fun ExerciseModel.ToListItem(type: ListItem.Type) = ListItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomBar() {
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    ) {
         NavigationBarItem(
-            icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Home") },
-            label = { Text("Home") },
-            selected = false,
+            icon = { Icon(imageVector = Icons.Default.Home, contentDescription = null) },
+            label = { Text(stringResource(R.string.bottom_navigation_home)) },
+            selected = true,
             onClick = {}
         )
 
@@ -194,10 +228,10 @@ fun BottomBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Profile"
+                    contentDescription = null
                 )
             },
-            label = { Text("Profile") },
+            label = { Text(stringResource(R.string.bottom_navigation_profile)) },
             selected = false,
             onClick = {}
         )
@@ -206,7 +240,7 @@ fun BottomBar() {
 
 @Preview(showBackground = true)
 @Composable
-fun OnboardingPreview() {
+fun MyAppPreview() {
     PokeAppTheme {
         MyApp()
     }
