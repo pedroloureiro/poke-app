@@ -4,26 +4,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.loreal.pokeapp.ui.theme.PokeAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -50,18 +56,49 @@ fun MyApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar() {
-    TopAppBar(title = { Text("Top app bar") })
+    TopAppBar(
+        title = { Text("Top app bar") },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary
+        )
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Content(innerPadding: PaddingValues) {
-    Column(
-        modifier = Modifier.padding(innerPadding)
-            .padding(vertical = 16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding),
+        color = MaterialTheme.colorScheme.background
     ) {
+        WellnessScreen()
+    }
+}
+
+@Composable
+fun WellnessScreen(
+    modifier: Modifier = Modifier,
+    wellnessViewModel: WellnessViewModel = viewModel()
+) {
+    var count by rememberSaveable { mutableIntStateOf(0) }
+
+    Column(modifier = modifier) {
+        WaterCounter(
+            count = count,
+            increment = { count++ },
+            clear = { count = 0 },
+            modifier = modifier
+        )
+        val list = remember { wellnessViewModel.tasks }
+        WellnessTasksList(
+            list = list,
+            onCheckedChanged = wellnessViewModel::changeTaskChecked,
+            onCloseTask = wellnessViewModel::remove
+        )
     }
 }
 
