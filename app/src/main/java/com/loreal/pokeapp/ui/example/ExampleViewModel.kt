@@ -3,6 +3,7 @@ package com.loreal.pokeapp.ui.example
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.loreal.pokeapp.domain.ExampleUseCase
+import com.loreal.pokeapp.domain.Pokemon
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ExampleUiState(
-    val countLabel: String? = null,
+    val pokemonList: List<Pokemon> = emptyList(),
     val loading: Boolean = false
 )
 
@@ -26,8 +27,9 @@ class ExampleViewModel @Inject constructor(
     fun fetchTasks() {
         _uiState.update { it.copy(loading = true) }
         viewModelScope.launch {
-            val countLabel = useCase.getCountLabel()
-            _uiState.update { it.copy(loading = false, countLabel = countLabel) }
+            val pokemonList = useCase.getAllPokemon().getOrNull() ?: emptyList()
+            //TODO: handle error
+            _uiState.update { it.copy(loading = false, pokemonList = pokemonList) }
         }
     }
 }
