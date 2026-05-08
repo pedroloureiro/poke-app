@@ -14,10 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.loreal.pokeapp.ui.example.TaskScreen
-import com.loreal.pokeapp.ui.example.TaskScreenContent
-import com.loreal.pokeapp.ui.theme.PokeAppTheme
 
 @Composable
 fun MainScreen() {
@@ -61,20 +58,6 @@ fun BottomBar() {
             label = { Text("Profile") },
             selected = false,
             onClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AppShellPreview() {
-    PokeAppTheme {
-        Scaffold(
-            topBar = ::AppBar,
-            bottomBar = ::BottomBar,
-            content = { paddingValues ->
-                TaskScreenContent(modifier = Modifier.padding(paddingValues))
-            }
         )
     }
 }

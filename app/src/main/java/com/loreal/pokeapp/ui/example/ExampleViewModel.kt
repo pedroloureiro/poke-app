@@ -2,14 +2,16 @@ package com.loreal.pokeapp.ui.example
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.loreal.pokeapp.data.database.pokemon.PokemonEntity
 import com.loreal.pokeapp.domain.ExampleUseCase
 import com.loreal.pokeapp.domain.Pokemon
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ExampleUiState(
@@ -24,12 +26,6 @@ class ExampleViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ExampleUiState())
     val uiState: StateFlow<ExampleUiState> = _uiState.asStateFlow()
 
-    fun fetchTasks() {
-        _uiState.update { it.copy(loading = true) }
-        viewModelScope.launch {
-            val pokemonList = useCase.getAllPokemon().getOrNull() ?: emptyList()
-            //TODO: handle error
-            _uiState.update { it.copy(loading = false, pokemonList = pokemonList) }
-        }
-    }
+    val pagedPokemon: Flow<PagingData<PokemonEntity>> =
+        useCase.getPagedPokemon().cachedIn(viewModelScope)
 }

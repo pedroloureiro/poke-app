@@ -1,9 +1,12 @@
 package com.loreal.pokeapp.di
 
 import android.content.Context
+import com.loreal.pokeapp.data.PokemonRemoteMediator
 import com.loreal.pokeapp.data.PokemonRepository
 import com.loreal.pokeapp.data.PokemonRepositoryImpl
 import com.loreal.pokeapp.data.database.PokeDatabase
+import com.loreal.pokeapp.data.database.pokemon.PokemonDao
+import com.loreal.pokeapp.data.database.remote_key.RemoteKeyDao
 import com.loreal.pokeapp.data.network.PokemonService
 import com.loreal.pokeapp.data.network.PokemonServiceImpl
 import dagger.Module
@@ -50,16 +53,36 @@ object DataModule {
 
     @Provides
     @Singleton
+    fun providePokemonDao(database: PokeDatabase) = database.pokemonDao
+
+    @Provides
+    @Singleton
+    fun provideRemoteKeyDao(database: PokeDatabase) = database.remoteKeyDao
+
+    @Provides
+    @Singleton
     fun providePokemonService(client: HttpClient): PokemonService {
         return PokemonServiceImpl(client)
     }
 
     @Provides
     @Singleton
+    fun providesPokemonRemoteMediator(
+        pokemonService: PokemonService,
+        pokeDatabase: PokeDatabase,
+        pokemonDao: PokemonDao,
+        remoteKeyDao: RemoteKeyDao
+    ): PokemonRemoteMediator {
+        return PokemonRemoteMediator(pokemonService, pokeDatabase, pokemonDao, remoteKeyDao)
+    }
+
+    @Provides
+    @Singleton
     fun providesPokemonRepository(
         pokemonService: PokemonService,
-        pokeDatabase: PokeDatabase
+        pokemonDao: PokemonDao,
+        pokemonRemoteMediator: PokemonRemoteMediator
     ): PokemonRepository {
-        return PokemonRepositoryImpl(pokemonService, pokeDatabase)
+        return PokemonRepositoryImpl(pokemonService, pokemonRemoteMediator, pokemonDao)
     }
 }
